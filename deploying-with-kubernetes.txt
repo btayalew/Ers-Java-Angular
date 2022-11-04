@@ -1,0 +1,88 @@
+deploying horizon application with kubernetes
+
+# built the application with "mvn clean install/ mvn clean package"
+
+# built successfully; also tested the jar file and ran smoothly
+
+# created docker image with "docker build -t bayalew/horizon-ers:local ."
+
+# tried to run the docker image with "docker run -p 8090:8080 bayalew/horizon-ers:local"
+	didn't work.
+
+	Exception during pool initialization.
+	org.postgresql.util.PSQLException: 
+	Connection to 127.0.0.1:5432 refused. 
+	Check that the hostname and port are correct and 
+	that the postmaster is accepting TCP/IP connections.
+
+	made changes to pg_hba.conf tried:
+	host  horizontest  postgres  172.17.0.0/16 trust
+	host  horizontest  postgres  localhost trust
+	host all all 172.17.0.0/16 trust
+
+	and postresql.conf
+	listen_addresses = '*'
+
+checked with "psql -h [HostIP] -U [db_user] -d [db_name]" and was able to connect
+
+# installed Minikube to be able to use kubernetes locally
+
+# installed kubctl to spin up kubernetes clusters
+
+# docker is installed and running to serve as a default virtual environment for minikube
+
+minikube start	# start minikube
+
+kubectl get nodes	# to check existing nodes
+
+kubectl apply -f deployment.yml # applying the deployment and service configuration
+
+minikube service horizon2-service	# to get the service url
+
+kubectl port-forward svc/horizon2-service 8081:8080	# to use a different port
+
+minikube config set driver hyperv	# to configure the default driver as hyperv instead of docker
+
+# netstat -ano | findstr :<PORT> to check which process is using a port
+
+# taskkill /PID <PID> /F to kill the process identified by PID (using the port)
+
+docker run --name sso \
+  --network my-net \
+  --add-host host.docker.internal:host-gateway \
+  -e DB_URL=jdbc:postgresql://host.docker.internal:5432/sso?user=my_user&password=my_password \
+  -d sso:latest
+docker is configured to use the default machine with IP 192.168.99.100 at https://docs.docker.com
+
+started a PostgreSQL Docker container on my machine with
+"docker run -d -p 5432:5432 --name my-postgres -e POSTGRES_PASSWORD=mysecretpassword postgres"
+got inside of the container with
+"$ docker exec -it my-postgres bash"
+connected to localhost with
+"$ psql -h host.docker.internal -p 5432 -U postgres -W"
+at postres=# prompt, I was able to see my database in the list of databases with
+\l
+
+PS C:\Users\bayal> docker container ls
+CONTAINER ID   IMAGE      COMMAND                  CREATED       STATUS       PORTS                    NAMES
+1cbca0043846   postgres   "docker-entrypoint.s…"   2 hours ago   Up 2 hours   0.0.0.0:5432->5432/tcp   postgres-pqGU
+PS C:\Users\bayal> docker container run -it --name my-app --link postgres-pqGU:my-db-host httpd:latest cat /etc/hosts
+Unable to find image 'httpd:latest' locally
+latest: Pulling from library/httpd
+e9995326b091: Already exists
+ee55ccd48c8f: Pull complete
+bc66ebea7efe: Pull complete
+5d0f831d3c0b: Pull complete
+e559e5380898: Pull complete
+Digest: sha256:5fa96551b61359de5dfb7fd8c9e97e4153232eb520a8e883e2f47fc80dbfc33e
+Status: Downloaded newer image for httpd:latest
+127.0.0.1       localhost
+::1     localhost ip6-localhost ip6-loopback
+fe00::0 ip6-localnet
+ff00::0 ip6-mcastprefix
+ff02::1 ip6-allnodes
+ff02::2 ip6-allrouters
+172.17.0.2      my-db-host 1cbca0043846 postgres-pqGU
+172.17.0.3      16de4dd5c6c7
+
+

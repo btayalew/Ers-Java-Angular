@@ -31,3 +31,4 @@ build/
 
 ### VS Code ###
 .vscode/
+deploying-with-kubernetes.txt

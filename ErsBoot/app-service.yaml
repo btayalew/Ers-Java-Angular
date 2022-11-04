@@ -1,42 +1,45 @@
 ---
-apiVersion: v1
 kind: Service
+apiVersion: v1
 metadata:
-  name: ers
+  name: horizon2
   labels:
-    app: ers
+    app: horizon2
 spec:
   type: NodePort
   selector:
-    app: ers
+    app: horizon2
   ports:
-  - protocol: TCP
-    port: 8020
+  - port: 8020
+    targetPort: 8090
+    protocol: TCP
+    nodePort: 31000
     name: http
 
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: ers
+  name: horizon2
 spec:
   selector:
     matchLabels:
-      app: ers
-  replicas: 1
+      app: horizon2
+  replicas: 2
   template:
     metadata:
       labels:
-        app: ers
+        app: horizon2
     spec:
       containers:
-      - name: ers
-        image: bayalew/ers:latest
+      - name: horizon2
+        image: host.docker.internal:5000/horizon-local
+        imagePullPolicy: Always
         ports:
         - containerPort: 8020
         livenessProbe:
           httpGet:
-            path: /healthcheck
+            path: actuator/health
             port: 8025
           initialDelaySeconds: 30
           timeoutSeconds: 1

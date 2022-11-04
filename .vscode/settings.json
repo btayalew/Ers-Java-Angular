@@ -4,5 +4,6 @@
             "file:///c%3A/Users/bayal/Documents/Ers-Java-Angular/ErsBoot/kubernetes/app-service.yaml"
         ],
         "kubernetes://schema/apps/v1%40deployment": "file:///c%3A/Users/bayal/Documents/Ers-Java-Angular/ErsBoot/app-service.yaml"
-    }
+    },
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
